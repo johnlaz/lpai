@@ -141,12 +141,33 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
 .heat-btn[data-heat="5"].active{border-color:var(--purple);color:var(--purple);}
 
 /* TRANSCRIPT */
-.transcript{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px;overflow-y:auto;font-family:'Share Tech Mono',monospace;font-size:0.74rem;line-height:1.85;color:var(--dim);scrollbar-width:thin;scrollbar-color:var(--surface2) transparent;min-height:0;}
+.transcript{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px;overflow-y:auto;font-family:'Share Tech Mono',monospace;font-size:0.74rem;line-height:1.85;color:var(--dim);scrollbar-width:thin;scrollbar-color:var(--surface2) transparent;min-height:120px;}
 .tl{margin-bottom:2px;}
 .tl.ai{color:var(--blue);}
 .tl.sys{color:var(--dim);font-style:italic;}
 .tl.usr{color:rgba(200,216,232,0.55);}
 .tl.timing{color:var(--groq);font-size:0.62rem;}
+
+/* TRANSCRIPT HEADER (label + expand button) */
+.transcript-wrap{flex:1;display:flex;flex-direction:column;gap:0;min-height:120px;}
+.transcript-hdr{display:flex;align-items:center;justify-content:space-between;padding:0 2px 4px;flex-shrink:0;}
+.transcript-label{font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:var(--dim);letter-spacing:1px;text-transform:uppercase;}
+.expand-btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;color:var(--dim);font-size:0.75rem;cursor:pointer;transition:all 0.2s;line-height:1;}
+.expand-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* FULLSCREEN TRANSCRIPT OVERLAY */
+.tx-overlay{position:fixed;inset:0;z-index:80;background:var(--bg);display:none;flex-direction:column;padding:0;}
+.tx-overlay.on{display:flex;}
+.tx-overlay-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:rgba(7,12,18,0.95);backdrop-filter:blur(12px);flex-shrink:0;}
+.tx-overlay-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;letter-spacing:2px;color:#fff;text-transform:uppercase;}
+.tx-overlay-close{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:6px 13px;color:var(--dim);cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:0.8rem;letter-spacing:1px;transition:all 0.2s;}
+.tx-overlay-close:hover{border-color:var(--red);color:var(--red);}
+.tx-overlay-body{flex:1;overflow-y:auto;font-family:'Share Tech Mono',monospace;font-size:0.82rem;line-height:2;color:var(--dim);padding:16px;scrollbar-width:thin;}
+.tx-overlay-input{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:rgba(7,12,18,0.95);flex-shrink:0;}
+.tx-overlay-input input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Exo 2',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s;}
+.tx-overlay-input input:focus{border-color:var(--blue);}
+.tx-overlay-send{background:linear-gradient(135deg,var(--blue),#0055bb);border:none;border-radius:10px;padding:11px 18px;color:#fff;font-size:1rem;cursor:pointer;transition:all 0.2s;}
+.tx-overlay-send:hover{filter:brightness(1.2);}
 
 /* STREAMING TEXT */
 .tl.ai.streaming::after{content:'▋';animation:cursor-blink 0.7s ease-in-out infinite;color:var(--blue);}
@@ -348,7 +369,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
         <div class="pipe-stage" id="ps-tts"><span class="ps-dot"></span>TTS</div>
         <span class="pipe-timing" id="pipe-timing-w"></span>
       </div>
-      <div class="transcript" id="transcript-w"><div class="tl sys">// Select a mode and tap CONNECT</div></div>
+      <div class="transcript-wrap">
+        <div class="transcript-hdr">
+          <span class="transcript-label">💬 Live Transcript</span>
+          <button class="expand-btn" id="expand-btn-w" title="Expand">⛶ Expand</button>
+        </div>
+        <div class="transcript" id="transcript-w"><div class="tl sys">// Select a mode and tap CONNECT</div></div>
+      </div>
       <div class="controls">
         <button class="connect-btn" id="conn-btn-w"><span id="conn-ico-w">🎙</span><span id="conn-lbl-w">CONNECT</span></button>
         <button class="reply-btn" id="reply-btn" disabled title="Force Reply Now">⚡</button>
@@ -430,7 +457,13 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
         <span class="pipe-timing" id="pipe-timing-s"></span>
       </div>
 
-      <div class="transcript" id="transcript-s"><div class="tl sys">// Choose a persona and tap CONNECT</div></div>
+      <div class="transcript-wrap">
+        <div class="transcript-hdr">
+          <span class="transcript-label">💬 Live Transcript</span>
+          <button class="expand-btn" id="expand-btn-s" title="Expand">⛶ Expand</button>
+        </div>
+        <div class="transcript" id="transcript-s"><div class="tl sys">// Choose a persona and tap CONNECT</div></div>
+      </div>
       <div class="controls">
         <button class="connect-btn" id="conn-btn-s"><span id="conn-ico-s">🎙</span><span id="conn-lbl-s">CONNECT</span></button>
         <button class="reply-btn" id="reply-btn-s" disabled title="Force Reply Now">⚡</button>
@@ -444,6 +477,20 @@ header{display:flex;align-items:center;justify-content:space-between;padding:11p
 
   </div><!-- /main-app -->
 </div><!-- /app -->
+
+<!-- FULLSCREEN TRANSCRIPT OVERLAY -->
+<div class="tx-overlay" id="tx-overlay">
+  <div class="tx-overlay-hdr">
+    <div class="tx-overlay-title" id="tx-overlay-title">💬 Transcript</div>
+    <button class="tx-overlay-close" id="tx-overlay-close">✕ Close</button>
+  </div>
+  <div class="tx-overlay-body" id="tx-overlay-body"></div>
+  <!-- Text input shown in overlay when in text mode -->
+  <div class="tx-overlay-input" id="tx-overlay-input" style="display:none;">
+    <input id="tx-overlay-text" placeholder="Type your message..." autocomplete="off">
+    <button class="tx-overlay-send" id="tx-overlay-send">➤</button>
+  </div>
+</div>
 
 <!-- GHOST -->
 <div id="ghost">
@@ -717,6 +764,70 @@ function init(){
   });
 
   // Voice test
+  // ── TRANSCRIPT EXPAND / OVERLAY ──
+  let overlayOpen=false;
+  let overlayScreen=null; // 'whisper' or 'session'
+
+  function openOverlay(screen){
+    overlayOpen=true;
+    overlayScreen=screen;
+    const srcId=screen==='session'?'transcript-s':'transcript-w';
+    const src=G(srcId);
+    const body=G('tx-overlay-body');
+    // Mirror all transcript lines into overlay
+    body.innerHTML=src.innerHTML;
+    body.scrollTop=body.scrollHeight;
+    G('tx-overlay-title').textContent=screen==='session'?'🧠 Session Transcript':'👂 Whisper Transcript';
+    // Show text input in overlay if text mode active and session screen
+    const showInput=(screen==='session'&&outputMode==='text');
+    G('tx-overlay-input').style.display=showInput?'flex':'none';
+    G('tx-overlay').classList.add('on');
+    if(showInput)G('tx-overlay-text').focus();
+  }
+
+  function closeOverlay(){
+    overlayOpen=false;
+    overlayScreen=null;
+    G('tx-overlay').classList.remove('on');
+  }
+
+  // Keep overlay in sync as new messages arrive
+  function syncOverlay(){
+    if(!overlayOpen||!overlayScreen)return;
+    const srcId=overlayScreen==='session'?'transcript-s':'transcript-w';
+    const src=G(srcId);
+    const body=G('tx-overlay-body');
+    body.innerHTML=src.innerHTML;
+    body.scrollTop=body.scrollHeight;
+  }
+
+  G('expand-btn-w').addEventListener('click',()=>openOverlay('whisper'));
+  G('expand-btn-s').addEventListener('click',()=>openOverlay('session'));
+  G('tx-overlay-close').addEventListener('click',closeOverlay);
+  // Close on backdrop (the overlay body itself isn't the backdrop, the header close btn is enough)
+
+  // Overlay text send
+  G('tx-overlay-send').addEventListener('click',async()=>{
+    const inp=G('tx-overlay-text');
+    const text=inp.value.trim();if(!text)return;
+    inp.value='';
+    // Also sync to main input and trigger send
+    G('text-input-s').value=text;
+    await sendTextMessage();
+    syncOverlay();
+  });
+  G('tx-overlay-text').addEventListener('keydown',async e=>{
+    if(e.key==='Enter'&&!e.shiftKey){
+      e.preventDefault();
+      const inp=G('tx-overlay-text');
+      const text=inp.value.trim();if(!text)return;
+      inp.value='';
+      G('text-input-s').value=text;
+      await sendTextMessage();
+      syncOverlay();
+    }
+  });
+
   G('voice-test').addEventListener('click',()=>{
     const v=G('voice-select').value;
     const u=new SpeechSynthesisUtterance('Testing voice. Pipeline ready.');
@@ -1164,6 +1275,8 @@ async function groqLLMStream(history,systemPrompt){
   // Remove streaming cursor
   if(streamEl)streamEl.classList.remove('streaming');
   while(el.children.length>60)el.removeChild(el.firstChild);
+  // Sync overlay if open
+  if(typeof syncOverlay==='function')syncOverlay();
   return full;
 }
 
@@ -1388,6 +1501,8 @@ function logMsg(text,type='sys'){
   const d=document.createElement('div');d.className='tl '+type;d.textContent=text;
   el.appendChild(d);el.scrollTop=el.scrollHeight;
   while(el.children.length>60)el.removeChild(el.firstChild);
+  // Keep expanded overlay in sync
+  if(typeof syncOverlay==='function')syncOverlay();
 }
 
 // ── TEST KEY ──
