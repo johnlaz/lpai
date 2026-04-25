@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<!-- Listener Pro v3.0 — Groq Edition -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Listener Pro">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#00aaff">
+<meta name="description" content="Real-time AI conversational support — Groq Edition">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192x192.png">
+<link rel="icon" type="image/x-icon" href="./favicon.ico">
+<title>Listener Pro</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap');
+:root{
+  --green:#00ff88; --yellow:#ffdd00; --red:#ff3355; --blue:#00aaff;
+  --purple:#aa66ff; --orange:#ff9944; --groq:#f55036;
+  --bg:#070c12; --surface:#0d1824; --surface2:#111f2e; --surface3:#162535;
+  --border:rgba(255,255,255,0.07); --text:#c8d8e8; --dim:#3a5568;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,170,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,170,255,0.02) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;display:flex;flex-direction:column;height:100dvh;}
+
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);background:rgba(7,12,18,0.92);backdrop-filter:blur(12px);flex-shrink:0;}
+.logo-wrap{display:flex;align-items:center;gap:9px;}
+.logo-img{width:36px;height:36px;border-radius:8px;object-fit:cover;box-shadow:0 0 12px rgba(0,170,255,0.35);}
+.logo-text{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.15rem;letter-spacing:3px;color:#fff;line-height:1;display:flex;flex-direction:column;gap:1px;}
+.logo-text span{color:var(--blue);text-shadow:0 0 14px var(--blue);}
+.ver-badge{font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:var(--groq);letter-spacing:1px;}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.status-pills{display:flex;gap:3px;margin-right:4px;}
+.pill{font-size:0.7rem;padding:3px 6px;border-radius:5px;background:var(--surface2);border:1px solid var(--border);cursor:default;transition:all 0.3s;opacity:0.3;}
+.pill.ok{opacity:1;border-color:var(--green);box-shadow:0 0 7px rgba(0,255,136,0.3);}
+.pill.warn{opacity:1;border-color:var(--yellow);box-shadow:0 0 7px rgba(255,221,0,0.3);}
+.pill.err{opacity:1;border-color:var(--red);box-shadow:0 0 7px rgba(255,51,85,0.3);}
+.icon-btn{background:var(--surface);border:1px solid var(--border);color:var(--dim);border-radius:8px;padding:6px 9px;cursor:pointer;font-size:0.9rem;transition:all 0.2s;}
+.icon-btn:hover,.icon-btn.on{border-color:var(--blue);color:var(--blue);box-shadow:0 0 10px rgba(0,170,255,0.2);}
+
+/* APP MODE TOGGLE */
+.app-toggle{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px;gap:3px;flex-shrink:0;margin:10px 14px 0;}
+.app-tab{flex:1;padding:8px;border:none;border-radius:7px;background:transparent;color:var(--dim);font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.85rem;letter-spacing:1.5px;cursor:pointer;transition:all 0.22s;text-transform:uppercase;}
+.app-tab.active{background:var(--surface2);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.app-tab.active.whisper{color:var(--green);}
+.app-tab.active.session{color:var(--purple);}
+
+/* SCREENS */
+.screen{display:none;flex:1;flex-direction:column;padding:10px 14px 0;gap:10px;overflow:hidden;min-height:0;}
+.screen.active{display:flex;}
+
+/* SETUP */
+#setup{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;}
+.setup-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;display:flex;flex-direction:column;gap:14px;}
+.setup-title{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:600;letter-spacing:2px;color:#fff;}
+.setup-note{font-size:0.78rem;color:var(--dim);line-height:1.6;}
+.setup-note a{color:var(--blue);text-decoration:none;}
+.groq-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(245,80,54,0.1);border:1px solid rgba(245,80,54,0.3);border-radius:6px;padding:4px 9px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--groq);letter-spacing:1px;margin-bottom:4px;}
+.api-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:0.82rem;outline:none;transition:border-color 0.2s;}
+.api-input:focus{border-color:var(--groq);}
+.btn-go{background:linear-gradient(135deg,var(--groq),#c0392b);border:none;border-radius:10px;padding:12px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:1rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+.btn-go:hover{filter:brightness(1.15);transform:translateY(-1px);}
+.btn-test{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--dim);font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.82rem;letter-spacing:1px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+.btn-test:hover{border-color:var(--green);color:var(--green);}
+#test-out{font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:var(--green);line-height:1.8;display:none;background:var(--bg);border-radius:8px;padding:10px;max-height:160px;overflow-y:auto;white-space:pre-wrap;border:1px solid var(--border);}
+
+/* WHISPER MODE */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:9px;flex-shrink:0;}
+.mode-btn{border:none;border-radius:13px;padding:16px 10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.95rem;letter-spacing:1.5px;text-transform:uppercase;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.mode-btn.picked{outline:2px solid rgba(255,255,255,0.5);outline-offset:-2px;transform:scale(0.97);}
+.mode-btn .mi{font-size:1.3rem;}
+.mode-btn .md{font-family:'Exo 2',sans-serif;font-weight:300;font-size:0.62rem;opacity:0.7;text-transform:none;}
+.m-s{background:linear-gradient(145deg,#002818,#004025);color:var(--green);border:1px solid rgba(0,255,136,0.18);}
+.m-e{background:linear-gradient(145deg,#1e1900,#2e2600);color:var(--yellow);border:1px solid rgba(255,221,0,0.18);}
+.m-l{background:linear-gradient(145deg,#200010,#300018);color:var(--red);border:1px solid rgba(255,51,85,0.18);}
+.m-b{background:linear-gradient(145deg,#001020,#001830);color:var(--blue);border:1px solid rgba(0,170,255,0.18);}
+
+/* SOUNDBAR */
+.soundbar-wrap{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:9px 11px;display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
+.sb-header{display:flex;justify-content:space-between;align-items:center;font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--dim);letter-spacing:1px;}
+#db-out{font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--green);}
+#sb-canvas{width:100%;height:42px;display:block;}
+.vu-row{display:flex;gap:2px;height:6px;}
+.speed-row{display:flex;align-items:center;gap:10px;margin-top:3px;}
+.speed-label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--dim);letter-spacing:1px;white-space:nowrap;}
+.speed-val{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--green);min-width:30px;text-align:right;}
+.speed-slider{flex:1;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;outline:none;cursor:pointer;}
+.speed-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(0,255,136,0.4);cursor:pointer;}
+.speed-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;border:none;background:var(--green);cursor:pointer;}
+.vu-seg{flex:1;border-radius:1px;background:var(--surface2);transition:background 0.08s;}
+
+/* PIPELINE STATUS BAR */
+.pipeline{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface);border:1px solid var(--border);border-radius:9px;flex-shrink:0;font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.8px;overflow:hidden;}
+.pipe-stage{display:flex;align-items:center;gap:4px;color:var(--dim);transition:color 0.2s;}
+.pipe-stage.active{color:var(--green);}
+.pipe-stage.active .ps-dot{background:var(--green);box-shadow:0 0 5px var(--green);animation:blink 0.6s ease-in-out infinite;}
+.pipe-stage.error .ps-dot{background:var(--red);}
+.pipe-stage.error{color:var(--red);}
+.ps-dot{width:5px;height:5px;border-radius:50%;background:var(--dim);flex-shrink:0;transition:all 0.2s;}
+.pipe-arrow{color:var(--dim);opacity:0.4;font-size:0.55rem;}
+.pipe-timing{margin-left:auto;color:var(--groq);font-size:0.58rem;white-space:nowrap;}
+
+/* SESSION MODE */
+.persona-label{font-family:'Rajdhani',sans-serif;font-size:0.72rem;font-weight:600;letter-spacing:2px;color:var(--dim);text-transform:uppercase;flex-shrink:0;}
+.personas{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0;}
+.persona-btn{border:none;border-radius:12px;padding:13px 10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.88rem;letter-spacing:1px;text-transform:uppercase;transition:all 0.18s;display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);color:var(--dim);}
+.persona-btn .pi{font-size:1.2rem;}
+.persona-btn .pd{font-family:'Exo 2',sans-serif;font-weight:300;font-size:0.6rem;opacity:0.65;text-transform:none;}
+.persona-btn.picked,.persona-btn:hover{color:#fff;border-color:var(--purple);background:linear-gradient(145deg,#180a2a,#220e3a);box-shadow:0 4px 16px rgba(170,102,255,0.15);}
+.persona-btn.picked{transform:scale(0.97);}
+
+/* SESSION CONTROLS */
+.session-ctrls{display:flex;gap:8px;flex-shrink:0;align-items:center;}
+.toggle-pill{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px;}
+.toggle-opt{padding:5px 10px;border:none;border-radius:6px;background:transparent;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:0.65rem;cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;}
+.toggle-opt.active{background:var(--surface2);color:#fff;}
+
+/* SALES TEMPLATE */
+.template-bar{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.template-select{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:0.7rem;outline:none;cursor:pointer;}
+.template-select:focus{border-color:var(--purple);}
+.tmpl-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--dim);cursor:pointer;transition:all 0.2s;white-space:nowrap;font-family:'Rajdhani',sans-serif;font-size:0.75rem;letter-spacing:1px;}
+.tmpl-btn:hover{border-color:var(--purple);color:var(--purple);}
+
+/* HEAT DIAL */
+.heat-row{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.heat-label{font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--dim);letter-spacing:1px;white-space:nowrap;}
+.heat-btns{display:flex;gap:4px;flex:1;}
+.heat-btn{flex:1;padding:5px 4px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:0.6rem;cursor:pointer;transition:all 0.2s;text-align:center;}
+.heat-btn:hover,.heat-btn.active{background:var(--surface2);color:#fff;}
+.heat-btn[data-heat="1"].active{border-color:var(--green);color:var(--green);}
+.heat-btn[data-heat="2"].active{border-color:var(--yellow);color:var(--yellow);}
+.heat-btn[data-heat="3"].active{border-color:var(--orange);color:var(--orange);}
+.heat-btn[data-heat="4"].active{border-color:var(--red);color:var(--red);}
+.heat-btn[data-heat="5"].active{border-color:var(--purple);color:var(--purple);}
+
+/* TRANSCRIPT */
+.transcript{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px;overflow-y:auto;font-family:'Share Tech Mono',monospace;font-size:0.74rem;line-height:1.85;color:var(--dim);scrollbar-width:thin;scrollbar-color:var(--surface2) transparent;min-height:0;}
+.tl{margin-bottom:2px;}
+.tl.ai{color:var(--blue);}
+.tl.sys{color:var(--dim);font-style:italic;}
+.tl.usr{color:rgba(200,216,232,0.55);}
+.tl.timing{color:var(--groq);font-size:0.62rem;}
+
+/* STREAMING TEXT */
+.tl.ai.streaming::after{content:'▋';animation:cursor-blink 0.7s ease-in-out infinite;color:var(--blue);}
+@keyframes cursor-blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* CONTROLS */
+.controls{display:flex;gap:8px;padding-bottom:12px;flex-shrink:0;}
+.connect-btn{flex:1;background:linear-gradient(135deg,#001525,#002040);border:1px solid rgba(0,170,255,0.3);border-radius:11px;padding:13px;color:var(--blue);font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.92rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:all 0.22s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.connect-btn.live{background:linear-gradient(135deg,#180008,#250010);border-color:rgba(255,51,85,0.4);color:var(--red);}
+.connect-btn.busy{opacity:0.65;animation:pulse 0.9s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:0.65}50%{opacity:1}}
+.reply-btn{background:linear-gradient(135deg,#1a1200,#2a1e00);border:1px solid rgba(255,221,0,0.2);border-radius:11px;padding:13px 14px;color:var(--dim);font-size:1rem;cursor:pointer;transition:all 0.2s;}
+.reply-btn:not(:disabled):hover{border-color:var(--yellow);color:var(--yellow);box-shadow:0 0 12px rgba(255,221,0,0.2);}
+.reply-btn:disabled{opacity:0.2;cursor:not-allowed;}
+.reply-btn.active{color:var(--yellow);border-color:var(--yellow);animation:replyPulse 0.5s ease-in-out infinite alternate;}
+@keyframes replyPulse{from{box-shadow:0 0 6px rgba(255,221,0,0.2);}to{box-shadow:0 0 18px rgba(255,221,0,0.5);}}
+.hist-btn{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:13px 14px;color:var(--dim);font-size:0.95rem;cursor:pointer;transition:all 0.2s;}
+.hist-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* STATUS BAR */
+.status{text-align:center;font-family:'Share Tech Mono',monospace;font-size:0.63rem;color:var(--dim);padding:4px;display:flex;align-items:center;justify-content:center;gap:12px;letter-spacing:0.8px;flex-shrink:0;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--dim);display:inline-block;margin-right:5px;}
+.dot.on{background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 1.2s ease-in-out infinite;}
+.dot.wait{background:var(--yellow);box-shadow:0 0 6px var(--yellow);animation:blink 0.5s ease-in-out infinite;}
+.dot.speak{background:var(--blue);box-shadow:0 0 6px var(--blue);animation:blink 0.4s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+
+/* MODEL SELECTOR (in settings panel) */
+.model-group{display:flex;flex-direction:column;gap:6px;}
+.model-option{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:9px;cursor:pointer;transition:all 0.2s;}
+.model-option:hover{border-color:var(--groq);}
+.model-option.selected{border-color:var(--groq);background:rgba(245,80,54,0.06);}
+.model-option input[type=radio]{accent-color:var(--groq);margin-top:2px;flex-shrink:0;}
+.model-info{display:flex;flex-direction:column;gap:2px;}
+.model-name{font-family:'Share Tech Mono',monospace;font-size:0.75rem;color:var(--text);}
+.model-note{font-family:'Exo 2',sans-serif;font-size:0.67rem;color:var(--dim);line-height:1.4;}
+.model-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:0.55rem;letter-spacing:0.5px;margin-left:6px;}
+.tag-default{background:rgba(0,255,136,0.1);color:var(--green);border:1px solid rgba(0,255,136,0.25);}
+.tag-fast{background:rgba(0,170,255,0.1);color:var(--blue);border:1px solid rgba(0,170,255,0.25);}
+.tag-smart{background:rgba(170,102,255,0.1);color:var(--purple);border:1px solid rgba(170,102,255,0.25);}
+.tag-balanced{background:rgba(255,153,68,0.1);color:var(--orange);border:1px solid rgba(255,153,68,0.25);}
+
+/* VOICE SELECTOR */
+.voice-row{display:flex;align-items:center;gap:8px;}
+.voice-select{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:8px 11px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:0.72rem;outline:none;cursor:pointer;transition:border-color 0.2s;}
+.voice-select:focus{border-color:var(--blue);}
+.voice-test-btn{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 13px;color:var(--dim);font-family:'Rajdhani',sans-serif;font-size:0.75rem;letter-spacing:1px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.voice-test-btn:hover{border-color:var(--green);color:var(--green);}
+
+/* GHOST */
+#ghost{position:fixed;inset:0;background:#000;z-index:100;display:none;}
+#ghost.on{display:block;}
+.gcorner{position:absolute;width:90px;height:90px;cursor:pointer;}
+.gcorner.tl{top:0;left:0}.gcorner.tr{top:0;right:0}.gcorner.bl{bottom:0;left:0}.gcorner.br{bottom:0;right:0}
+.clabel{font-size:1.5rem;position:absolute;pointer-events:none;}
+.gcorner.tl .clabel{top:10px;left:10px}.gcorner.tr .clabel{top:10px;right:10px}
+.gcorner.bl .clabel{bottom:10px;left:10px}.gcorner.br .clabel{bottom:10px;right:10px}
+#ghost-exit{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:11px 26px;color:rgba(255,255,255,0.4);font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.9rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+#ghost-exit:hover{background:rgba(255,255,255,0.14);color:#fff;}
+#gflash{position:fixed;inset:0;pointer-events:none;z-index:101;opacity:0;transition:opacity 0.15s;}
+#gflash.on{opacity:0.18;}
+
+/* PANELS */
+.panel{position:fixed;inset:0;background:rgba(0,0,0,0.9);backdrop-filter:blur(8px);z-index:50;display:none;flex-direction:column;padding:16px;gap:12px;overflow:hidden;}
+.panel.on{display:flex;}
+.panel-hdr{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.panel-title{font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:600;letter-spacing:2px;color:#fff;text-transform:uppercase;}
+.close-btn{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:5px 11px;color:var(--dim);cursor:pointer;font-size:0.8rem;font-family:'Rajdhani',sans-serif;letter-spacing:1px;transition:all 0.2s;}
+.close-btn:hover{border-color:var(--red);color:var(--red);}
+.panel-footer{position:sticky;bottom:0;padding:12px 0 2px;background:linear-gradient(transparent,rgba(0,0,0,0.95) 40%);margin-top:auto;flex-shrink:0;}
+.back-btn{width:100%;background:linear-gradient(135deg,var(--groq),#c0392b);border:none;border-radius:11px;padding:14px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+.back-btn:hover{filter:brightness(1.15);}
+.panel-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--surface2) transparent;min-height:0;}
+.section-label{font-family:'Rajdhani',sans-serif;font-size:0.75rem;font-weight:600;letter-spacing:2px;color:var(--dim);text-transform:uppercase;padding-top:4px;}
+
+/* HISTORY CARDS */
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:13px;display:flex;flex-direction:column;gap:8px;}
+.scard.locked{border-color:rgba(255,221,0,0.2);background:rgba(255,221,0,0.02);}
+.scard-hdr{display:flex;align-items:center;justify-content:space-between;}
+.sdate{font-family:'Share Tech Mono',monospace;font-size:0.67rem;color:var(--dim);}
+.scard-actions{display:flex;gap:5px;}
+.sc-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:0.78rem;cursor:pointer;transition:all 0.2s;color:var(--text);}
+.sc-btn:hover:not(:disabled){border-color:var(--blue);}
+.sc-btn:disabled{opacity:0.22;cursor:not-allowed;}
+.sc-btn.del:hover:not(:disabled){border-color:var(--red);}
+.sbullet{display:flex;gap:8px;font-size:0.78rem;line-height:1.5;}
+.slabel{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.68rem;letter-spacing:1px;text-transform:uppercase;min-width:52px;padding-top:2px;}
+.slabel.t{color:var(--blue)}.slabel.n{color:var(--yellow)}.slabel.i{color:var(--purple)}.slabel.r{color:var(--green)}.slabel.f{color:var(--orange)}
+.note-preview{font-family:'Share Tech Mono',monospace;font-size:0.67rem;color:var(--yellow);background:rgba(255,221,0,0.05);border-radius:6px;padding:5px 8px;border:1px solid rgba(255,221,0,0.12);}
+.scard-btns{display:flex;gap:7px;margin-top:2px;flex-wrap:wrap;}
+.view-btn{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 11px;color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:0.67rem;cursor:pointer;transition:all 0.2s;}
+.view-btn:hover{border-color:var(--blue);background:rgba(0,170,255,0.07);}
+.no-hist{text-align:center;color:var(--dim);font-size:0.8rem;margin-top:40px;}
+
+/* TX / SUMMARY PANEL */
+.tx-meta{font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);padding:7px 9px;background:var(--surface);border-radius:8px;border:1px solid var(--border);flex-shrink:0;}
+.tx-body{flex:1;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:13px;font-family:'Share Tech Mono',monospace;font-size:0.73rem;line-height:1.9;color:var(--dim);scrollbar-width:thin;white-space:pre-wrap;word-break:break-word;min-height:0;}
+.tx-ai{color:var(--blue);}.tx-sys{color:var(--dim);font-style:italic;}
+.summary-field{margin-bottom:16px;}
+.summary-field-label{font-family:'Rajdhani',sans-serif;font-size:0.68rem;letter-spacing:2px;color:var(--dim);margin-bottom:4px;}
+.summary-field-val{font-size:0.83rem;color:var(--text);line-height:1.6;}
+
+/* TEMPLATE EDITOR PANEL */
+.tmpl-form{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;min-height:0;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-label{font-family:'Rajdhani',sans-serif;font-size:0.7rem;font-weight:600;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;}
+.form-input,.form-textarea{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:0.75rem;outline:none;transition:border-color 0.2s;width:100%;}
+.form-input:focus,.form-textarea:focus{border-color:var(--purple);}
+.form-textarea{resize:vertical;min-height:70px;line-height:1.6;}
+.form-row{display:flex;gap:8px;}
+.tmpl-footer{display:flex;gap:8px;flex-shrink:0;padding-top:8px;}
+.btn-save{flex:1;background:linear-gradient(135deg,var(--purple),#6633cc);border:none;border-radius:10px;padding:12px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.95rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase;}
+.btn-del-tmpl{background:var(--surface);border:1px solid rgba(255,51,85,0.3);border-radius:10px;padding:12px 16px;color:var(--red);font-size:1rem;cursor:pointer;transition:all 0.2s;}
+
+/* IMPORT/EXPORT PANEL */
+.io-section{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.io-title{font-family:'Rajdhani',sans-serif;font-size:0.85rem;font-weight:600;letter-spacing:1.5px;color:#fff;text-transform:uppercase;}
+.io-desc{font-size:0.75rem;color:var(--dim);line-height:1.5;}
+.io-checks{display:flex;flex-direction:column;gap:7px;}
+.io-check{display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text);cursor:pointer;}
+.io-check input{accent-color:var(--groq);width:15px;height:15px;}
+.btn-export{background:linear-gradient(135deg,var(--groq),#c0392b);border:none;border-radius:9px;padding:10px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.85rem;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+.btn-import{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:600;font-size:0.85rem;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+.btn-import:hover,.btn-export:hover{filter:brightness(1.15);}
+
+/* TOAST */
+#toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 15px;font-size:0.77rem;color:var(--text);opacity:0;transition:all 0.26s;pointer-events:none;white-space:nowrap;z-index:200;font-family:'Share Tech Mono',monospace;}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:2px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo-wrap">
+      <img src="data:image/png;base64,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" class="logo-img" alt="Listener Pro">
+      <div class="logo-text">LISTENER<span>PRO</span><div class="ver-badge">v3.0 · GROQ</div></div>
+    </div>
+    <div class="hdr-right">
+      <div class="status-pills">
+        <span class="pill" id="pill-key" title="API Key">🔑</span>
+        <span class="pill" id="pill-mic" title="Microphone">🎙</span>
+        <span class="pill" id="pill-conn" title="Connection">📡</span>
+      </div>
+      <button class="icon-btn" id="ghost-btn" title="Ghost Mode">👁</button>
+      <button class="icon-btn" id="io-btn" title="Import / Export">⇅</button>
+      <button class="icon-btn" id="settings-btn" title="Settings">⚙</button>
+    </div>
+  </header>
+
+  <!-- SETUP -->
+  <div id="setup">
+    <div class="setup-card">
+      <div class="groq-badge">⚡ GROQ EDITION</div>
+      <div class="setup-title">🔑 API KEY</div>
+      <div class="setup-note">Enter your Groq API key.<br>Get one free at <a href="https://console.groq.com" target="_blank">console.groq.com</a><br><br>Stored locally only — never shared.</div>
+      <input class="api-input" id="api-input" type="password" placeholder="gsk_..." autocomplete="off">
+      <button class="btn-go" id="go-btn">INITIALIZE →</button>
+      <button class="btn-test" id="test-btn">🔍 TEST KEY + LIST MODELS</button>
+      <div id="test-out"></div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="main-app" style="display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;">
+
+    <!-- MODE TOGGLE -->
+    <div class="app-toggle">
+      <button class="app-tab whisper active" id="tab-whisper">👂 Whisper</button>
+      <button class="app-tab session" id="tab-session">🧠 Session</button>
+    </div>
+
+    <!-- WHISPER SCREEN -->
+    <div class="screen active" id="screen-whisper">
+      <div class="modes">
+        <button class="mode-btn m-s picked" data-mode="supportive"><span class="mi">💚</span><span>Supportive</span><span class="md">Validating short phrases</span></button>
+        <button class="mode-btn m-e" data-mode="engaged"><span class="mi">💛</span><span>Engaged</span><span class="md">Curious follow-up questions</span></button>
+        <button class="mode-btn m-l" data-mode="logical"><span class="mi">❤️</span><span>Logical</span><span class="md">Calm objective counter-points</span></button>
+        <button class="mode-btn m-b" data-mode="baseline"><span class="mi">💙</span><span>Baseline</span><span class="md">De-escalation & mediation</span></button>
+      </div>
+      <div class="soundbar-wrap">
+        <div class="sb-header"><span>🎙 MIC LEVEL</span><span id="db-out">— dB</span></div>
+        <canvas id="sb-canvas"></canvas>
+        <div class="vu-row" id="vu-row"></div>
+        <div class="speed-row">
+          <span class="speed-label">TTS SPEED</span>
+          <input type="range" class="speed-slider" id="speed-slider" min="0.6" max="1.5" step="0.05" value="0.9">
+          <span class="speed-val" id="speed-val">0.9x</span>
+        </div>
+      </div>
+      <!-- Pipeline status -->
+      <div class="pipeline" id="pipeline-w">
+        <div class="pipe-stage" id="ps-vad"><span class="ps-dot"></span>VAD</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-stage" id="ps-stt"><span class="ps-dot"></span>WHISPER</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-stage" id="ps-llm"><span class="ps-dot"></span>GROQ LLM</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-stage" id="ps-tts"><span class="ps-dot"></span>TTS</div>
+        <span class="pipe-timing" id="pipe-timing-w"></span>
+      </div>
+      <div class="transcript" id="transcript-w"><div class="tl sys">// Select a mode and tap CONNECT</div></div>
+      <div class="controls">
+        <button class="connect-btn" id="conn-btn-w"><span id="conn-ico-w">🎙</span><span id="conn-lbl-w">CONNECT</span></button>
+        <button class="reply-btn" id="reply-btn" disabled title="Force Reply Now">⚡</button>
+        <button class="hist-btn" id="hist-btn">📋</button>
+      </div>
+      <div class="status">
+        <span><span class="dot" id="cdot"></span><span id="cstat">Disconnected</span></span>
+        <span><span class="dot" id="mdot"></span><span id="mstat">Mic: Off</span></span>
+        <span id="mode-stat" style="color:var(--dim)">Mode: —</span>
+      </div>
+    </div>
+
+    <!-- SESSION SCREEN -->
+    <div class="screen" id="screen-session">
+      <div class="persona-label">Choose Persona</div>
+      <div class="personas">
+        <button class="persona-btn picked" data-persona="therapist"><span class="pi">🧠</span><span>Therapist</span><span class="pd">Reflective & probing</span></button>
+        <button class="persona-btn" data-persona="sales"><span class="pi">💼</span><span>Sales Coach</span><span class="pd">Roleplay & feedback</span></button>
+        <button class="persona-btn" data-persona="devil"><span class="pi">🪞</span><span>Devil's Advocate</span><span class="pd">Stress-test your thinking</span></button>
+        <button class="persona-btn" data-persona="coach"><span class="pi">🧭</span><span>Life Coach</span><span class="pd">Goals & action steps</span></button>
+      </div>
+
+      <!-- Sales-only controls -->
+      <div id="sales-ctrls" style="display:none;flex-direction:column;gap:8px;">
+        <div class="template-bar">
+          <select class="template-select" id="tmpl-select"><option value="">— No template —</option></select>
+          <button class="tmpl-btn" id="tmpl-edit-btn">✏️ Edit</button>
+          <button class="tmpl-btn" id="tmpl-new-btn">＋ New</button>
+        </div>
+        <div class="heat-row">
+          <span class="heat-label">HEAT:</span>
+          <div class="heat-btns">
+            <button class="heat-btn" data-heat="1">😊 Friendly</button>
+            <button class="heat-btn active" data-heat="2">😐 Neutral</button>
+            <button class="heat-btn" data-heat="3">😒 Skeptical</button>
+            <button class="heat-btn" data-heat="4">😠 Hostile</button>
+            <button class="heat-btn" data-heat="5">🎲 Surprise</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="session-ctrls">
+        <div class="toggle-pill" id="sales-mode-toggle" style="display:none;">
+          <button class="toggle-opt active" data-smode="prospect">🎭 Prospect</button>
+          <button class="toggle-opt" data-smode="coach">🧭 Coach</button>
+        </div>
+        <button class="hist-btn" id="hist-btn-s" style="margin-left:auto;">📋</button>
+      </div>
+
+      <!-- Pipeline status session -->
+      <div class="pipeline" id="pipeline-s">
+        <div class="pipe-stage" id="ps-vad-s"><span class="ps-dot"></span>VAD</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-stage" id="ps-stt-s"><span class="ps-dot"></span>WHISPER</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-stage" id="ps-llm-s"><span class="ps-dot"></span>GROQ LLM</div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-stage" id="ps-tts-s"><span class="ps-dot"></span>TTS</div>
+        <span class="pipe-timing" id="pipe-timing-s"></span>
+      </div>
+
+      <div class="transcript" id="transcript-s"><div class="tl sys">// Choose a persona and tap CONNECT</div></div>
+      <div class="controls">
+        <button class="connect-btn" id="conn-btn-s"><span id="conn-ico-s">🎙</span><span id="conn-lbl-s">CONNECT</span></button>
+        <button class="reply-btn" id="reply-btn-s" disabled title="Force Reply Now">⚡</button>
+      </div>
+      <div class="status">
+        <span><span class="dot" id="cdot-s"></span><span id="cstat-s">Disconnected</span></span>
+        <span><span class="dot" id="mdot-s"></span><span id="mstat-s">Mic: Off</span></span>
+        <span id="persona-stat" style="color:var(--dim)">Persona: —</span>
+      </div>
+    </div>
+
+  </div><!-- /main-app -->
+</div><!-- /app -->
+
+<!-- GHOST -->
+<div id="ghost">
+  <div class="gcorner tl" data-mode="supportive"><span class="clabel">💚</span></div>
+  <div class="gcorner tr" data-mode="engaged"><span class="clabel">💛</span></div>
+  <div class="gcorner bl" data-mode="logical"><span class="clabel">❤️</span></div>
+  <div class="gcorner br" data-mode="baseline"><span class="clabel">💙</span></div>
+  <button id="ghost-exit">✕ EXIT GHOST</button>
+</div>
+<div id="gflash"></div>
+
+<!-- HISTORY PANEL -->
+<div class="panel" id="hist-panel">
+  <div class="panel-hdr"><div class="panel-title">📋 Session History</div><button class="close-btn" id="close-hist">✕</button></div>
+  <div class="panel-scroll" id="hist-list"></div>
+  <div class="panel-footer"><button class="back-btn" id="back-hist">← BACK TO APP</button></div>
+</div>
+
+<!-- TRANSCRIPT / SUMMARY PANEL -->
+<div class="panel" id="tx-panel">
+  <div class="panel-hdr"><div class="panel-title" id="tx-panel-title">📄 Session Log</div><button class="close-btn" id="close-tx">✕</button></div>
+  <div class="tx-meta" id="tx-meta"></div>
+  <div class="tx-body" id="tx-body"></div>
+  <div class="panel-footer"><button class="back-btn" id="back-tx">← BACK TO HISTORY</button></div>
+</div>
+
+<!-- TEMPLATE EDITOR PANEL -->
+<div class="panel" id="tmpl-panel">
+  <div class="panel-hdr"><div class="panel-title" id="tmpl-panel-title">✏️ Sales Template</div><button class="close-btn" id="close-tmpl">✕</button></div>
+  <div class="tmpl-form">
+    <div class="form-group"><div class="form-label">Template Name</div><input class="form-input" id="tmpl-name" placeholder="e.g. SaaS Demo Pitch"></div>
+    <div class="form-group">
+      <div class="form-label">Company URL <span style="color:var(--dim);font-weight:300;letter-spacing:0px;text-transform:none;font-size:0.62rem;">— paste to auto-fill fields below</span></div>
+      <div style="display:flex;gap:7px;align-items:center;">
+        <input class="form-input" id="tmpl-url" placeholder="https://company.com" style="flex:1;" autocomplete="off" autocapitalize="none">
+        <button class="tmpl-btn" id="tmpl-scrape-btn" style="white-space:nowrap;padding:9px 13px;border-radius:9px;">🔍 Auto-fill</button>
+      </div>
+      <div id="scrape-status" style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;color:var(--dim);display:none;padding:2px 0;"></div>
+    </div>
+    <div class="form-group"><div class="form-label">Product / Service</div><input class="form-input" id="tmpl-product" placeholder="What are you selling?"></div>
+    <div class="form-group"><div class="form-label">Key Selling Points</div><textarea class="form-textarea" id="tmpl-points" placeholder="• Fast deployment&#10;• 30% cost reduction&#10;• 24/7 support"></textarea></div>
+    <div class="form-group"><div class="form-label">Common Objections</div><textarea class="form-textarea" id="tmpl-objections" placeholder="• Too expensive&#10;• We already have a solution&#10;• Need to check with IT"></textarea></div>
+    <div class="form-group"><div class="form-label">Target Prospect Type</div><input class="form-input" id="tmpl-prospect" placeholder="e.g. Mid-market IT Director, skeptical of new vendors"></div>
+  </div>
+  <div class="tmpl-footer">
+    <button class="btn-save" id="tmpl-save-btn">💾 SAVE TEMPLATE</button>
+    <button class="btn-del-tmpl" id="tmpl-delete-btn" title="Delete">🗑</button>
+  </div>
+</div>
+
+<!-- SETTINGS PANEL -->
+<div class="panel" id="settings-panel">
+  <div class="panel-hdr"><div class="panel-title">⚙ Settings</div><button class="close-btn" id="close-settings">✕</button></div>
+  <div class="panel-scroll">
+
+    <!-- API Key -->
+    <div class="section-label">🔑 Groq API Key</div>
+    <div style="display:flex;gap:8px;">
+      <input class="api-input" id="settings-key-input" type="password" placeholder="gsk_..." style="flex:1;">
+      <button class="tmpl-btn" id="settings-key-save" style="padding:9px 14px;border-radius:9px;">SAVE</button>
+    </div>
+
+    <!-- Model Selector -->
+    <div class="section-label">🤖 LLM Model</div>
+    <div class="model-group" id="model-group">
+      <label class="model-option selected" id="mo-llama33">
+        <input type="radio" name="model" value="llama-3.3-70b-versatile" checked>
+        <div class="model-info">
+          <div class="model-name">llama-3.3-70b-versatile <span class="model-tag tag-default">DEFAULT</span></div>
+          <div class="model-note">Best overall quality. Strong reasoning, nuanced responses. Recommended for Whisper & Session modes.</div>
+        </div>
+      </label>
+      <label class="model-option" id="mo-llama31">
+        <input type="radio" name="model" value="llama-3.1-8b-instant">
+        <div class="model-info">
+          <div class="model-name">llama-3.1-8b-instant <span class="model-tag tag-fast">FASTEST</span></div>
+          <div class="model-note">Ultra-low latency. Ideal for Whisper mode where speed matters most. Lighter responses.</div>
+        </div>
+      </label>
+      <label class="model-option" id="mo-llama32">
+        <input type="radio" name="model" value="llama3-70b-8192">
+        <div class="model-info">
+          <div class="model-name">llama3-70b-8192 <span class="model-tag tag-balanced">BALANCED</span></div>
+          <div class="model-note">High quality with longer context window (8192 tokens). Good for extended Session conversations.</div>
+        </div>
+      </label>
+      <label class="model-option" id="mo-mixtral">
+        <input type="radio" name="model" value="mixtral-8x7b-32768">
+        <div class="model-info">
+          <div class="model-name">mixtral-8x7b-32768 <span class="model-tag tag-smart">LARGE CTX</span></div>
+          <div class="model-note">Massive 32k context window. Best for long session history and complex Sales Coach scenarios.</div>
+        </div>
+      </label>
+    </div>
+
+    <!-- STT Model -->
+    <div class="section-label">🎙 STT Model (Groq Whisper)</div>
+    <div class="model-group" id="stt-group">
+      <label class="model-option selected" id="stt-large">
+        <input type="radio" name="stt-model" value="whisper-large-v3" checked>
+        <div class="model-info">
+          <div class="model-name">whisper-large-v3 <span class="model-tag tag-default">DEFAULT</span></div>
+          <div class="model-note">Highest accuracy. Best for noisy environments and accents. Recommended.</div>
+        </div>
+      </label>
+      <label class="model-option" id="stt-turbo">
+        <input type="radio" name="stt-model" value="whisper-large-v3-turbo">
+        <div class="model-info">
+          <div class="model-name">whisper-large-v3-turbo <span class="model-tag tag-fast">FASTER</span></div>
+          <div class="model-note">~2x faster transcription with minimal accuracy trade-off. Great for real-time feel.</div>
+        </div>
+      </label>
+    </div>
+
+    <!-- TTS Voice -->
+    <div class="section-label">🔊 TTS Voice (Browser)</div>
+    <div class="voice-row">
+      <select class="voice-select" id="voice-select"><option value="">Loading voices...</option></select>
+      <button class="voice-test-btn" id="voice-test">▶ Test</button>
+    </div>
+
+    <!-- VAD Settings -->
+    <div class="section-label">🎯 VAD Sensitivity</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div class="speed-row">
+        <span class="speed-label">SILENCE ms</span>
+        <input type="range" class="speed-slider" id="vad-silence" min="400" max="2000" step="100" value="900">
+        <span class="speed-val" id="vad-silence-val">900ms</span>
+      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:var(--dim);padding:2px 0;">
+        Time of silence before auto-sending to Groq Whisper. Lower = more responsive, higher = fewer interruptions.
+      </div>
+    </div>
+
+  </div>
+  <div class="panel-footer"><button class="back-btn" id="back-settings">← DONE</button></div>
+</div>
+
+<!-- IMPORT / EXPORT PANEL -->
+<div class="panel" id="io-panel">
+  <div class="panel-hdr"><div class="panel-title">⇅ Import / Export</div><button class="close-btn" id="close-io">✕</button></div>
+  <div class="panel-scroll">
+    <div class="io-section">
+      <div class="io-title">📤 Export</div>
+      <div class="io-desc">Select what to include in the export file.</div>
+      <div class="io-checks">
+        <label class="io-check"><input type="checkbox" id="exp-sessions" checked> Session history & notes</label>
+        <label class="io-check"><input type="checkbox" id="exp-templates" checked> Sales templates</label>
+        <label class="io-check"><input type="checkbox" id="exp-settings" checked> App settings & preferences</label>
+      </div>
+      <button class="btn-export" id="do-export">📤 EXPORT FILE</button>
+    </div>
+    <div class="io-section">
+      <div class="io-title">📥 Import</div>
+      <div class="io-desc">Import from a previously exported file. Select what to restore — existing data will be merged, not overwritten.</div>
+      <div class="io-checks">
+        <label class="io-check"><input type="checkbox" id="imp-sessions" checked> Sessions</label>
+        <label class="io-check"><input type="checkbox" id="imp-templates" checked> Sales templates</label>
+        <label class="io-check"><input type="checkbox" id="imp-settings"> Settings</label>
+      </div>
+      <button class="btn-import" id="do-import">📥 CHOOSE FILE</button>
+      <input type="file" id="import-file" accept=".json" style="display:none;">
+    </div>
+  </div>
+  <div class="panel-footer"><button class="back-btn" id="back-io">← BACK</button></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  LISTENER PRO v3.0 — GROQ EDITION
+//  Pipeline: Mic → VAD → Groq Whisper STT
+//           → Groq LLM (streaming) → Web Speech TTS
+// ═══════════════════════════════════════════════
+const APP_VERSION = 'v3.0-groq';
+
+const WHISPER_MODES = {
+  supportive:{ label:'SUPPORTIVE', color:'#00ff88', prompt:'You are a supportive spouse. Respond with ONE short validating phrase only. Maximum 6 words. Examples: "I hear you.", "That makes total sense.", "I understand completely." Never advise or ask questions.' },
+  engaged:   { label:'ENGAGED',    color:'#ffdd00', prompt:'You are a curious engaged listener. Ask exactly ONE short follow-up question about a specific detail just mentioned. Maximum 10 words.' },
+  logical:   { label:'LOGICAL',    color:'#ff3355', prompt:'You are a calm logical analyst. Offer ONE brief objective observation. Maximum 10 words. Never combative.' },
+  baseline:  { label:'BASELINE',   color:'#00aaff', prompt:'You are a skilled mediator. Use ONE short de-escalating phrase. Maximum 8 words. Examples: "Let us take a breath.", "I can see both sides."' }
+};
+
+const PERSONAS = {
+  therapist:{ label:'THERAPIST', color:'#aa66ff', prompt:'You are a warm, skilled therapist combining CBT, motivational interviewing, and supportive listening. Ask thoughtful open-ended questions to help the user explore their feelings. Reflect back what you hear. Notice emotional patterns and gently name them. Never give direct advice unless asked. Build on what the user says in each turn. Speak in a calm, natural conversational tone. Keep responses to 2-3 sentences max.' },
+  sales:    { label:'SALES COACH', color:'#ff9944', prompt:'' },
+  devil:    { label:'DEVILS ADVOCATE', color:'#ff3355', prompt:'You are a sharp, intellectually honest devils advocate. When the user makes a claim or decision, challenge their reasoning with a specific, well-reasoned counter-argument. Point out assumptions, risks, or overlooked perspectives. Be direct but not dismissive. Ask "what about X?" style questions. 2-3 sentences max.' },
+  coach:    { label:'LIFE COACH', color:'#00ff88', prompt:'You are an energetic, results-focused life coach. Help the user clarify their goals, identify obstacles, and commit to specific action steps. Ask one focused question per turn that moves the conversation forward. At natural breaks, summarize progress and suggest a concrete next step. Warm but direct. 2-3 sentences max.' }
+};
+
+// ── State ──
+let apiKey='', appMode='whisper', whisperMode='supportive', persona='therapist';
+let salesSubMode='prospect', heat=2;
+let audioCtx=null, stream=null, mediaRecorder=null;
+let analyser=null, analyserBuf=null, animFrame=null;
+let connected=false, connecting=false, sessionText='', activeScreen='whisper';
+let editingTmplId=null, scrapeContext=null;
+let playbackSpeed=0.9;
+let selectedModel='llama-3.3-70b-versatile';
+let selectedSTT='whisper-large-v3';
+let vadSilenceMs=900;
+let selectedVoice=null;
+let conversationHistory=[];
+let ttsQueue=[], ttsBusy=false;
+
+// VAD state
+let vadActive=false, speechDetected=false;
+let silenceTimer=null, vadCooldownTimer=null;
+let audioChunks=[];
+let vadRMS=0;
+let ttsPlaying=false;           // TRUE while AI is speaking — VAD is fully gated
+const VAD_THRESHOLD=0.012;
+const TTS_COOLDOWN_MS=600;      // ms to wait after TTS ends before re-opening VAD
+
+const G = id => document.getElementById(id);
+const VU=24;
+
+// Build VU
+const vuRow=G('vu-row');
+for(let i=0;i<VU;i++){const s=document.createElement('div');s.className='vu-seg';s.id='v'+i;vuRow.appendChild(s);}
+const canvas=G('sb-canvas'), ctx=canvas.getContext('2d');
+
+// ── INIT ──
+function init(){
+  const k=localStorage.getItem('lp_key');
+  if(k){apiKey=k;showMain();setTimeout(updatePills,100);}
+  const m=localStorage.getItem('lp_model');if(m)setModelSilent(m);
+  const st=localStorage.getItem('lp_stt');if(st)setSTTSilent(st);
+  const vs=localStorage.getItem('lp_vad_silence');if(vs){vadSilenceMs=parseInt(vs);G('vad-silence').value=vs;G('vad-silence-val').textContent=vs+'ms';}
+
+  G('go-btn').addEventListener('click',saveKey);
+  G('api-input').addEventListener('keydown',e=>e.key==='Enter'&&saveKey());
+  G('test-btn').addEventListener('click',testKey);
+
+  // Settings panel
+  G('settings-btn').addEventListener('click',openSettings);
+  G('close-settings').addEventListener('click',()=>G('settings-panel').classList.remove('on'));
+  G('back-settings').addEventListener('click',()=>G('settings-panel').classList.remove('on'));
+  G('settings-key-save').addEventListener('click',()=>{
+    const v=G('settings-key-input').value.trim();
+    if(!v){toast('⚠ Enter a key');return;}
+    apiKey=v;localStorage.setItem('lp_key',v);updatePills();toast('✓ Key updated');
+  });
+
+  // Model radios
+  document.querySelectorAll('input[name=model]').forEach(r=>{
+    r.addEventListener('change',()=>{
+      selectedModel=r.value;localStorage.setItem('lp_model',selectedModel);
+      document.querySelectorAll('.model-option').forEach(o=>o.classList.remove('selected'));
+      r.closest('.model-option').classList.add('selected');
+      toast('→ '+selectedModel);
+    });
+  });
+
+  // STT radios
+  document.querySelectorAll('input[name=stt-model]').forEach(r=>{
+    r.addEventListener('change',()=>{
+      selectedSTT=r.value;localStorage.setItem('lp_stt',selectedSTT);
+      document.querySelectorAll('#stt-group .model-option').forEach(o=>o.classList.remove('selected'));
+      r.closest('.model-option').classList.add('selected');
+      toast('→ STT: '+selectedSTT);
+    });
+  });
+
+  // VAD slider
+  G('vad-silence').addEventListener('input',()=>{
+    vadSilenceMs=parseInt(G('vad-silence').value);
+    G('vad-silence-val').textContent=vadSilenceMs+'ms';
+    localStorage.setItem('lp_vad_silence',vadSilenceMs);
+  });
+
+  // Voice test
+  G('voice-test').addEventListener('click',()=>{
+    const v=G('voice-select').value;
+    const u=new SpeechSynthesisUtterance('Testing voice. Pipeline ready.');
+    const voices=speechSynthesis.getVoices();
+    const found=voices.find(x=>x.name===v);
+    if(found)u.voice=found;
+    u.rate=playbackSpeed;
+    speechSynthesis.speak(u);
+  });
+
+  G('ghost-btn').addEventListener('click',toggleGhost);
+  G('ghost-exit').addEventListener('click',toggleGhost);
+  G('io-btn').addEventListener('click',()=>G('io-panel').classList.add('on'));
+
+  G('tab-whisper').addEventListener('click',()=>switchAppMode('whisper'));
+  G('tab-session').addEventListener('click',()=>switchAppMode('session'));
+  document.querySelectorAll('.mode-btn').forEach(b=>b.addEventListener('click',()=>setWhisperMode(b.dataset.mode)));
+  G('conn-btn-w').addEventListener('click',()=>handleConnect('whisper'));
+  G('reply-btn').addEventListener('click',forceReply);
+  G('hist-btn').addEventListener('click',showHistory);
+  document.querySelectorAll('.persona-btn').forEach(b=>b.addEventListener('click',()=>setPersona(b.dataset.persona)));
+  G('conn-btn-s').addEventListener('click',()=>handleConnect('session'));
+  G('reply-btn-s').addEventListener('click',forceReply);
+  G('hist-btn-s').addEventListener('click',showHistory);
+
+  G('sales-mode-toggle').querySelectorAll('.toggle-opt').forEach(b=>b.addEventListener('click',()=>{
+    salesSubMode=b.dataset.smode;
+    G('sales-mode-toggle').querySelectorAll('.toggle-opt').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  }));
+
+  document.querySelectorAll('.heat-btn').forEach(b=>b.addEventListener('click',()=>{
+    heat=parseInt(b.dataset.heat);
+    document.querySelectorAll('.heat-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  }));
+
+  G('tmpl-new-btn').addEventListener('click',()=>openTemplateEditor(null));
+  G('tmpl-edit-btn').addEventListener('click',()=>{const id=G('tmpl-select').value;if(id)openTemplateEditor(id);else toast('⚠ Select a template first');});
+  G('tmpl-save-btn').addEventListener('click',saveTemplate);
+  G('tmpl-scrape-btn').addEventListener('click',scrapeCompanyURL);
+  G('tmpl-delete-btn').addEventListener('click',deleteTemplate);
+  G('close-tmpl').addEventListener('click',()=>G('tmpl-panel').classList.remove('on'));
+
+  document.querySelectorAll('.gcorner').forEach(c=>c.addEventListener('click',()=>{setWhisperMode(c.dataset.mode);flashGhost(WHISPER_MODES[c.dataset.mode].color);}));
+  G('close-hist').addEventListener('click',()=>G('hist-panel').classList.remove('on'));
+  G('back-hist').addEventListener('click',()=>G('hist-panel').classList.remove('on'));
+  G('close-tx').addEventListener('click',()=>G('tx-panel').classList.remove('on'));
+  G('back-tx').addEventListener('click',()=>G('tx-panel').classList.remove('on'));
+  G('close-io').addEventListener('click',()=>G('io-panel').classList.remove('on'));
+  G('back-io').addEventListener('click',()=>G('io-panel').classList.remove('on'));
+  G('do-export').addEventListener('click',doExport);
+  G('do-import').addEventListener('click',()=>G('import-file').click());
+  G('import-file').addEventListener('change',doImport);
+
+  loadTemplateSelect();
+  setPersona('therapist');
+  setWhisperMode('supportive');
+  lockInactiveBtn('whisper');
+
+  // Speed sliders
+  const sSlider=G('speed-slider'),sVal=G('speed-val');
+  function updateSlider(){const pct=((playbackSpeed-0.6)/(1.5-0.6))*100;sSlider.style.background=`linear-gradient(to right,var(--green) 0%,var(--green) ${pct}%,var(--surface2) ${pct}%,var(--surface2) 100%)`;sVal.textContent=playbackSpeed.toFixed(2).replace(/\.?0+$/,'')+'x';}
+  if(sSlider){sSlider.addEventListener('input',()=>{playbackSpeed=parseFloat(sSlider.value);updateSlider();});updateSlider();}
+
+  // Load TTS voices
+  function loadVoices(){
+    const voices=speechSynthesis.getVoices();
+    const sel=G('voice-select');
+    if(!voices.length)return;
+    sel.innerHTML='';
+    voices.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name+(v.default?' (default)':'');sel.appendChild(o);});
+    const saved=localStorage.getItem('lp_voice');
+    if(saved){sel.value=saved;}
+    sel.addEventListener('change',()=>localStorage.setItem('lp_voice',sel.value));
+  }
+  speechSynthesis.onvoiceschanged=loadVoices;
+  loadVoices();
+}
+
+function setModelSilent(m){
+  selectedModel=m;
+  document.querySelectorAll('input[name=model]').forEach(r=>{
+    if(r.value===m){r.checked=true;r.closest('.model-option').classList.add('selected');}
+    else r.closest('.model-option').classList.remove('selected');
+  });
+}
+function setSTTSilent(m){
+  selectedSTT=m;
+  document.querySelectorAll('input[name=stt-model]').forEach(r=>{
+    if(r.value===m){r.checked=true;r.closest('.model-option').classList.add('selected');}
+    else r.closest('.model-option').classList.remove('selected');
+  });
+}
+
+function openSettings(){
+  G('settings-key-input').value=apiKey;
+  G('settings-panel').classList.add('on');
+}
+
+// ── SAVE KEY ──
+function saveKey(){
+  const v=G('api-input').value.trim();
+  if(!v){toast('⚠ Enter your Groq API key');return;}
+  apiKey=v;localStorage.setItem('lp_key',v);showMain();toast('✓ Key saved');updatePills();
+}
+
+function showMain(){
+  G('setup').style.display='none';
+  G('main-app').style.display='flex';
+  G('main-app').style.flexDirection='column';
+  setTimeout(()=>{resizeCanvas();drawEmpty();},100);
+}
+
+// ── APP MODE ──
+function switchAppMode(m){
+  if(connected||connecting){disconnect();toast('⚠ Disconnected — switching mode');}
+  appMode=m;activeScreen=m;
+  G('tab-whisper').classList.toggle('active',m==='whisper');
+  G('tab-session').classList.toggle('active',m==='session');
+  G('screen-whisper').classList.toggle('active',m==='whisper');
+  G('screen-session').classList.toggle('active',m==='session');
+  lockInactiveBtn(m);
+}
+
+// ── WHISPER MODE ──
+function setWhisperMode(m){
+  whisperMode=m;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('picked',b.dataset.mode===m));
+  G('mode-stat').textContent='Mode: '+WHISPER_MODES[m].label;
+  G('mode-stat').style.color=WHISPER_MODES[m].color;
+  toast('→ '+WHISPER_MODES[m].label);
+  conversationHistory=[];
+}
+
+// ── PERSONA ──
+function setPersona(p){
+  persona=p;
+  document.querySelectorAll('.persona-btn').forEach(b=>b.classList.toggle('picked',b.dataset.persona===p));
+  G('persona-stat').textContent='Persona: '+PERSONAS[p].label;
+  G('persona-stat').style.color=PERSONAS[p].color;
+  G('sales-ctrls').style.display=p==='sales'?'flex':'none';
+  G('sales-mode-toggle').style.display=p==='sales'?'flex':'none';
+  toast('→ '+PERSONAS[p].label);
+  conversationHistory=[];
+}
+
+function buildSalesPrompt(){
+  const templates=JSON.parse(localStorage.getItem('lp_templates')||'[]');
+  const tmplId=G('tmpl-select').value;
+  const tmpl=templates.find(t=>t.id===tmplId);
+  const heatMap={1:'very friendly and easy to convince',2:'professionally neutral',3:'skeptical and needs convincing',4:'hostile and impatient, challenges everything',5:'randomize your personality unpredictably'};
+  const heatActual=heat===5?[1,2,3,4][Math.floor(Math.random()*4)]:heat;
+  const modeDesc=salesSubMode==='prospect'
+    ?`You are roleplaying as a ${tmpl?.prospect||'skeptical business prospect'}. Be ${heatMap[heatActual]}. Respond naturally as this prospect would. Raise objections from: ${tmpl?.objections||'price, timing, and existing solutions'}. Do not break character.`
+    :`You are an expert sales coach observing a sales rep pitch. Give specific, actionable coaching feedback on what they just said. Point out what worked, what missed, and suggest a better approach. Be direct and constructive.`;
+  const context=tmpl?`\n\nProduct: ${tmpl.product}\nKey points: ${tmpl.points}\nObjections: ${tmpl.objections}\nProspect: ${tmpl.prospect}${tmpl.companyContext?'\n\nCompany background:\n'+tmpl.companyContext:''}`:''
+  return modeDesc+context;
+}
+
+function getSystemPrompt(){
+  if(appMode==='whisper') return WHISPER_MODES[whisperMode].prompt;
+  if(persona==='sales') return buildSalesPrompt();
+  return PERSONAS[persona].prompt;
+}
+
+// ── CONNECT ──
+async function handleConnect(screen){
+  if(connecting)return;
+  if(connected&&activeScreen===screen){disconnect();return;}
+  if(connected&&activeScreen!==screen){toast('⚠ Disconnect '+activeScreen+' mode first');return;}
+  activeScreen=screen;appMode=screen;
+  lockInactiveBtn(screen);
+  await doConnect();
+}
+
+async function doConnect(){
+  connecting=true;setBtnState('busy');
+  logMsg('// Requesting microphone...');
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:{sampleRate:16000,channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  }catch(e){logMsg('// ✗ Mic denied: '+e.message);toast('⚠ Mic access denied');resetBtn();return;}
+  logMsg('// ✓ Mic granted');
+
+  try{
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)({sampleRate:16000});
+    await audioCtx.resume();
+  }catch(e){logMsg('// ✗ AudioContext: '+e.message);resetBtn();return;}
+
+  resizeCanvas();startSoundbar();
+  conversationHistory=[];
+  startVAD();
+
+  connected=true;connecting=false;
+  setBtnState('live');updatePills();
+  G('reply-btn').disabled=false;G('reply-btn-s').disabled=false;
+  logMsg('// ✓ Connected — speak now! (VAD + ⚡ manual override)');
+}
+
+// ── VAD ──
+function startVAD(){
+  if(!audioCtx||!stream)return;
+  // Use ScriptProcessor for VAD analysis
+  const src=audioCtx.createMediaStreamSource(stream);
+  const vad=audioCtx.createScriptProcessor(2048,1,1);
+  vad.onaudioprocess=e=>{
+    if(!connected||ttsPlaying)return;   // ← gate: deaf while AI speaks
+    const data=e.inputBuffer.getChannelData(0);
+    let sum=0;for(let i=0;i<data.length;i++)sum+=data[i]*data[i];
+    vadRMS=Math.sqrt(sum/data.length);
+    const isSpeech=vadRMS>VAD_THRESHOLD;
+
+    if(isSpeech){
+      if(!speechDetected){
+        speechDetected=true;
+        setPipeStage('vad','active');
+        audioChunks=[];
+        startRecording();
+      }
+      if(silenceTimer){clearTimeout(silenceTimer);silenceTimer=null;}
+    } else if(speechDetected){
+      if(!silenceTimer){
+        silenceTimer=setTimeout(()=>{
+          if(speechDetected){
+            speechDetected=false;
+            setPipeStage('vad','');
+            stopRecordingAndSend();
+          }
+          silenceTimer=null;
+        },vadSilenceMs);
+      }
+    }
+  };
+  src.connect(vad);vad.connect(audioCtx.destination);
+  vadActive=true;
+}
+
+function startRecording(){
+  if(!stream||mediaRecorder)return;
+  try{
+    // Prefer webm/ogg for better compression, fallback to wav
+    const mimeType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':
+                   MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')?'audio/ogg;codecs=opus':'audio/webm';
+    mediaRecorder=new MediaRecorder(stream,{mimeType});
+    mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};
+    mediaRecorder.start(100); // collect in 100ms chunks
+  }catch(err){logMsg('// ✗ Recorder: '+err.message);}
+}
+
+function stopRecordingAndSend(){
+  if(!mediaRecorder)return;
+  const mr=mediaRecorder;mediaRecorder=null;
+  mr.onstop=async()=>{
+    if(audioChunks.length===0)return;
+    const blob=new Blob(audioChunks,{type:mr.mimeType||'audio/webm'});
+    audioChunks=[];
+    if(blob.size<3000){return;} // too short, skip
+    await runPipeline(blob);
+  };
+  try{mr.stop();}catch(e){}
+}
+
+// ── FORCE REPLY (manual override) ──
+function forceReply(){
+  if(!connected)return;
+  const btn=activeScreen==='whisper'?G('reply-btn'):G('reply-btn-s');
+  btn.classList.add('active');
+  setTimeout(()=>btn.classList.remove('active'),600);
+
+  // If currently recording, flush it
+  if(mediaRecorder&&mediaRecorder.state==='recording'){
+    speechDetected=false;
+    if(silenceTimer){clearTimeout(silenceTimer);silenceTimer=null;}
+    stopRecordingAndSend();
+  } else {
+    // No speech detected — prompt AI to respond anyway
+    runPipelineWithText('[User paused. Please respond or ask a follow-up question.]');
+  }
+}
+
+// ── MAIN PIPELINE ──
+async function runPipeline(audioBlob){
+  const t0=Date.now();
+  try{
+    // 1. STT via Groq Whisper
+    setPipeStage('stt','active');
+    logMsg('// 🎙 Transcribing...');
+    const transcript=await groqWhisper(audioBlob);
+    if(!transcript||transcript.trim().length<2){setPipeStage('stt','');return;}
+    const tSTT=Date.now()-t0;
+    setPipeStage('stt','');
+    logMsg('USR: '+transcript,'usr');
+    sessionText+='USR: '+transcript+'\n';
+    updatePipeTiming('stt:'+tSTT+'ms');
+
+    await runPipelineWithText(transcript,tSTT);
+  }catch(e){
+    logMsg('// ✗ Pipeline: '+e.message);
+    setPipeStage('stt','error');setPipeStage('llm','error');
+    setTimeout(()=>{setPipeStage('stt','');setPipeStage('llm','');},2000);
+  }
+}
+
+async function runPipelineWithText(text,sttMs=0){
+  const t0=Date.now();
+  try{
+    // 2. LLM via Groq (streaming)
+    setPipeStage('llm','active');
+    conversationHistory.push({role:'user',content:text});
+    // Keep history manageable
+    if(conversationHistory.length>20)conversationHistory=conversationHistory.slice(-20);
+
+    const aiText=await groqLLMStream(conversationHistory,getSystemPrompt());
+    const tLLM=Date.now()-t0;
+    setPipeStage('llm','');
+
+    if(aiText){
+      sessionText+='AI: '+aiText+'\n';
+      updatePipeTiming('stt:'+(sttMs||0)+'ms · llm:'+tLLM+'ms');
+      conversationHistory.push({role:'assistant',content:aiText});
+
+      // 3. TTS
+      setPipeStage('tts','active');
+      speakText(aiText,()=>setPipeStage('tts',''));
+    }
+  }catch(e){
+    logMsg('// ✗ LLM: '+e.message);
+    setPipeStage('llm','error');
+    setTimeout(()=>setPipeStage('llm',''),2000);
+  }
+}
+
+// ── GROQ WHISPER STT ──
+async function groqWhisper(audioBlob){
+  const form=new FormData();
+  form.append('file',audioBlob,'audio.webm');
+  form.append('model',selectedSTT);
+  form.append('response_format','json');
+  form.append('language','en');
+  const res=await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+apiKey},
+    body:form
+  });
+  if(!res.ok){const e=await res.text();throw new Error('STT '+res.status+': '+e.slice(0,120));}
+  const d=await res.json();
+  return d.text||'';
+}
+
+// ── GROQ LLM STREAMING ──
+async function groqLLMStream(history,systemPrompt){
+  const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:selectedModel,
+      messages:[{role:'system',content:systemPrompt},...history],
+      max_tokens:300,
+      temperature:0.7,
+      stream:true
+    })
+  });
+  if(!res.ok){const e=await res.text();throw new Error('LLM '+res.status+': '+e.slice(0,120));}
+
+  const reader=res.body.getReader();
+  const decoder=new TextDecoder();
+  let full='';
+  let streamEl=null;
+
+  // Create streaming transcript element
+  const tid=activeScreen==='session'?'transcript-s':'transcript-w';
+  const el=G(tid);
+  streamEl=document.createElement('div');
+  streamEl.className='tl ai streaming';
+  streamEl.textContent='AI: ';
+  el.appendChild(streamEl);
+  el.scrollTop=el.scrollHeight;
+
+  while(true){
+    const{done,value}=await reader.read();
+    if(done)break;
+    const chunk=decoder.decode(value,{stream:true});
+    const lines=chunk.split('\n');
+    for(const line of lines){
+      if(!line.startsWith('data: '))continue;
+      const data=line.slice(6).trim();
+      if(data==='[DONE]')break;
+      try{
+        const j=JSON.parse(data);
+        const delta=j.choices?.[0]?.delta?.content||'';
+        if(delta){full+=delta;streamEl.textContent='AI: '+full;el.scrollTop=el.scrollHeight;}
+      }catch(e){}
+    }
+  }
+  // Remove streaming cursor
+  if(streamEl)streamEl.classList.remove('streaming');
+  while(el.children.length>60)el.removeChild(el.firstChild);
+  return full;
+}
+
+// ── WEB SPEECH TTS ──
+function speakText(text, onDone){
+  ttsQueue.push({text,onDone});
+  drainTTS();
+}
+function drainTTS(){
+  if(ttsBusy||!ttsQueue.length)return;
+  ttsBusy=true;
+  ttsPlaying=true;                        // gate VAD immediately
+
+  // Flush any in-flight VAD state so we start clean after AI speaks
+  if(silenceTimer){clearTimeout(silenceTimer);silenceTimer=null;}
+  if(vadCooldownTimer){clearTimeout(vadCooldownTimer);vadCooldownTimer=null;}
+  if(speechDetected){
+    speechDetected=false;
+    setPipeStage('vad','');
+    if(mediaRecorder&&mediaRecorder.state==='recording'){
+      try{mediaRecorder.stop();}catch(e){}
+      mediaRecorder=null;audioChunks=[];
+    }
+  }
+
+  const{text,onDone}=ttsQueue.shift();
+  const u=new SpeechSynthesisUtterance(text);
+  const voices=speechSynthesis.getVoices();
+  const savedVoice=localStorage.getItem('lp_voice');
+  if(savedVoice){const v=voices.find(x=>x.name===savedVoice);if(v)u.voice=v;}
+  u.rate=playbackSpeed;
+
+  // Update mic status while speaking
+  const mdotEl=G('mdot'+(activeScreen==='session'?'-s':''));
+  const mstatEl=G('mstat'+(activeScreen==='session'?'-s':''));
+  if(mdotEl)mdotEl.className='dot speak';
+  if(mstatEl)mstatEl.textContent='AI Speaking...';
+
+  function onTTSDone(){
+    ttsBusy=false;
+    if(onDone)onDone();
+    // Cooldown: keep VAD gated for TTS_COOLDOWN_MS after speech ends
+    // so the reverb/tail of the speaker doesn't immediately trigger a new turn
+    vadCooldownTimer=setTimeout(()=>{
+      ttsPlaying=false;
+      vadCooldownTimer=null;
+      if(mdotEl)mdotEl.className='dot on';
+      if(mstatEl)mstatEl.textContent='Mic: On';
+    },TTS_COOLDOWN_MS);
+    drainTTS();
+  }
+  u.onend=onTTSDone;
+  u.onerror=onTTSDone;
+  speechSynthesis.speak(u);
+}
+
+function stopTTS(){speechSynthesis.cancel();ttsQueue=[];ttsBusy=false;ttsPlaying=false;if(vadCooldownTimer){clearTimeout(vadCooldownTimer);vadCooldownTimer=null;}}
+
+// ── PIPELINE STAGE UI ──
+function setPipeStage(stage,state){
+  const suffix=activeScreen==='session'?'-s':'';
+  const el=G('ps-'+stage+suffix);
+  if(!el)return;
+  el.className='pipe-stage'+(state?' '+state:'');
+}
+function updatePipeTiming(txt){
+  const el=G('pipe-timing-'+(activeScreen==='session'?'s':'w'));
+  if(el)el.textContent=txt;
+}
+
+// ── SOUNDBAR ──
+function startSoundbar(){
+  if(!audioCtx||!stream)return;
+  analyser=audioCtx.createAnalyser();analyser.fftSize=256;analyser.smoothingTimeConstant=0.8;
+  analyserBuf=new Uint8Array(analyser.frequencyBinCount);
+  audioCtx.createMediaStreamSource(stream).connect(analyser);
+  drawLoop();
+  G('mdot').className='dot on';G('mstat').textContent='Mic: On';
+  if(activeScreen==='session'){G('mdot-s').className='dot on';G('mstat-s').textContent='Mic: On';}
+}
+
+function resizeCanvas(){
+  const dpr=window.devicePixelRatio||1,rect=canvas.getBoundingClientRect();
+  canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;ctx.scale(dpr,dpr);
+}
+function drawEmpty(){
+  const W=canvas.offsetWidth,H=canvas.offsetHeight;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='rgba(0,170,255,0.05)';
+  const bw=6,gap=3,count=38;for(let i=0;i<count;i++)ctx.fillRect(i*(bw+gap),H-2,bw,2);
+}
+function drawLoop(){
+  animFrame=requestAnimationFrame(drawLoop);
+  if(!analyser||!analyserBuf)return;
+  analyser.getByteFrequencyData(analyserBuf);
+  const W=canvas.offsetWidth,H=canvas.offsetHeight;
+  ctx.clearRect(0,0,W,H);
+  let sum=0;for(let i=0;i<analyserBuf.length;i++)sum+=(analyserBuf[i]/255)**2;
+  const rms=Math.sqrt(sum/analyserBuf.length),db=rms>0?Math.max(-60,20*Math.log10(rms)):-60;
+  const dbEl=G('db-out');
+  dbEl.textContent=db.toFixed(1)+' dB';
+  dbEl.style.color=db>-20?'#ff3355':db>-35?'#ffdd00':'#00ff88';
+  const count=36,gap=2,bw=(W-gap*(count-1))/count,step=Math.floor(analyserBuf.length/count);
+  for(let i=0;i<count;i++){
+    let s=0;for(let j=0;j<step;j++)s+=analyserBuf[i*step+j];
+    const norm=(s/step)/255,bh=Math.max(2,norm*H*0.95),x=i*(bw+gap),hue=norm<0.5?140:norm<0.78?55:0;
+    // Highlight VAD activity
+    const isActive=speechDetected&&norm>VAD_THRESHOLD*3;
+    ctx.fillStyle=isActive?`hsla(${hue},95%,60%,${0.6+norm*0.4})`:`hsla(${hue},88%,50%,${0.45+norm*0.55})`;
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(x,H-bh,bw,bh,[2,2,0,0]);else ctx.rect(x,H-bh,bw,bh);
+    ctx.fill();
+  }
+  const lit=Math.round(((db+60)/60)*VU);
+  for(let i=0;i<VU;i++){const seg=G('v'+i);if(!seg)continue;seg.style.background=i<lit?(i<VU*0.6?'#00ff88':i<VU*0.82?'#ffdd00':'#ff3355'):'var(--surface2)';}
+}
+function stopSoundbar(){
+  if(animFrame){cancelAnimationFrame(animFrame);animFrame=null;}
+  if(analyser){analyser.disconnect();analyser=null;}
+  G('db-out').textContent='— dB';
+  const W=canvas.offsetWidth,H=canvas.offsetHeight;ctx.clearRect(0,0,W,H);drawEmpty();
+  for(let i=0;i<VU;i++){const s=G('v'+i);if(s)s.style.background='var(--surface2)';}
+}
+
+// ── DISCONNECT ──
+function disconnect(){
+  connected=false;connecting=false;vadActive=false;speechDetected=false;ttsPlaying=false;
+  if(silenceTimer){clearTimeout(silenceTimer);silenceTimer=null;}
+  if(vadCooldownTimer){clearTimeout(vadCooldownTimer);vadCooldownTimer=null;}
+  if(mediaRecorder){try{mediaRecorder.stop();}catch(e){}mediaRecorder=null;}
+  audioChunks=[];
+  stopTTS();
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  if(audioCtx){audioCtx.close().catch(()=>{});audioCtx=null;}
+  stopSoundbar();
+  G('mdot').className='dot';G('mstat').textContent='Mic: Off';
+  G('mdot-s').className='dot';G('mstat-s').textContent='Mic: Off';
+  setPipeStage('vad','');setPipeStage('stt','');setPipeStage('llm','');setPipeStage('tts','');
+  if(sessionText.trim())endSession();
+  resetBtn();updatePills();
+}
+
+function lockInactiveBtn(activeMode){
+  const inactiveKey=activeMode==='whisper'?'s':'w';
+  const activeKey=activeMode==='whisper'?'w':'s';
+  const inactive=G('conn-btn-'+inactiveKey),active=G('conn-btn-'+activeKey);
+  if(inactive){inactive.disabled=true;inactive.style.opacity='0.3';}
+  if(active){active.disabled=false;active.style.opacity='';}
+}
+
+function resetBtn(){
+  connecting=false;connected=false;
+  ['w','s'].forEach(s=>{
+    const b=G('conn-btn-'+s),i=G('conn-ico-'+s),l=G('conn-lbl-'+s);
+    if(b){b.className='connect-btn';b.disabled=false;b.style.opacity='';b.title='';}
+    if(i)i.textContent='🎙';if(l)l.textContent='CONNECT';
+  });
+  G('cdot').className='dot';G('cstat').textContent='Disconnected';
+  G('cdot-s').className='dot';G('cstat-s').textContent='Disconnected';
+  G('reply-btn').disabled=true;G('reply-btn').classList.remove('active');
+  G('reply-btn-s').disabled=true;G('reply-btn-s').classList.remove('active');
+}
+
+function setBtnState(s){
+  const screen=activeScreen;
+  const b=G('conn-btn-'+screen[0]),i=G('conn-ico-'+screen[0]),l=G('conn-lbl-'+screen[0]);
+  const cdot=G('cdot'+(screen==='session'?'-s':''));
+  const cstat=G('cstat'+(screen==='session'?'-s':''));
+  if(s==='busy'){
+    if(b)b.className='connect-btn busy';if(i)i.textContent='⟳';if(l)l.textContent='CONNECTING...';
+    if(cdot)cdot.className='dot wait';if(cstat)cstat.textContent='Connecting...';
+  }else if(s==='live'){
+    if(b)b.className='connect-btn live';if(i)i.textContent='⏹';if(l)l.textContent='DISCONNECT';
+    if(cdot)cdot.className='dot on';if(cstat)cstat.textContent='Connected';
+  }
+}
+
+// ── SESSION SUMMARY (now uses Groq) ──
+async function endSession(){
+  const txt=sessionText;sessionText='';
+  if(!txt.trim()||txt.split('\n').filter(l=>l.trim()).length<3)return;
+  logMsg('// Generating summary...');
+  const prompt=`Analyze this conversation transcript. Respond ONLY with a raw JSON object — start with { end with } — no markdown, no backticks.
+
+{"topic":"One specific sentence about exactly what was discussed","tone":"2-3 words describing the emotional tone","insight":"One sentence of specific insight about the dynamic","repair":"One specific actionable phrase for this exact situation","followup":"One concrete suggested next step"}
+
+Transcript:
+${txt.slice(0,4000)}`;
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json'},
+      body:JSON.stringify({model:selectedModel,messages:[{role:'user',content:prompt}],max_tokens:400,temperature:0.2})
+    });
+    const d=await res.json();
+    const raw=(d.choices?.[0]?.message?.content||'');
+    let summary=null;
+    try{summary=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){const m=raw.match(/\{[\s\S]*\}/);if(m)try{summary=JSON.parse(m[0]);}catch(e2){}}
+    if(!summary){
+      const aiLines=txt.split('\n').filter(l=>l.startsWith('AI:')).map(l=>l.replace('AI:','').trim());
+      summary={topic:aiLines[0]?'Discussed: '+aiLines[0].slice(0,80):'Session recorded',tone:'see log',insight:raw.slice(0,100)||'Review log',repair:'Review the full session log',followup:''};
+    }
+    saveSession(summary,txt);toast('✓ Session saved');
+  }catch(e){saveSession({topic:'Session recorded',tone:'unknown',repair:'Review log',insight:'',followup:''},txt);}
+}
+
+function saveSession(summary,txt){
+  const sessions=JSON.parse(localStorage.getItem('lp_sessions')||'[]');
+  sessions.unshift({id:Date.now(),date:new Date().toLocaleString(),mode:appMode,persona:appMode==='session'?persona:whisperMode,summary,transcript:txt,note:'',locked:false,model:selectedModel});
+  if(sessions.length>50)sessions.pop();
+  localStorage.setItem('lp_sessions',JSON.stringify(sessions));
+}
+
+// ── TRANSCRIPT LOG ──
+function logMsg(text,type='sys'){
+  const tid=activeScreen==='session'?'transcript-s':'transcript-w';
+  const el=G(tid);if(!el)return;
+  const d=document.createElement('div');d.className='tl '+type;d.textContent=text;
+  el.appendChild(d);el.scrollTop=el.scrollHeight;
+  while(el.children.length>60)el.removeChild(el.firstChild);
+}
+
+// ── TEST KEY ──
+async function testKey(){
+  const k=G('api-input').value.trim()||apiKey;
+  if(!k){toast('⚠ Enter key first');return;}
+  const out=G('test-out');out.style.display='block';out.textContent='// Testing Groq key...\n';
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/models',{headers:{'Authorization':'Bearer '+k}});
+    const data=await res.json();
+    if(data.error){out.textContent+='// ✗ '+data.error.message;return;}
+    const models=(data.data||[]).map(m=>m.id).sort();
+    out.textContent+='// ✓ Key valid! Available models:\n';
+    models.forEach(m=>out.textContent+='//   '+m+'\n');
+  }catch(e){out.textContent+='// ✗ '+e.message;}
+}
+
+// ── PILLS ──
+function updatePills(){
+  const kp=G('pill-key'),mp=G('pill-mic'),cp=G('pill-conn');
+  if(kp){kp.className='pill '+(apiKey?'ok':'err');kp.title=apiKey?'API Key: Active':'API Key: Missing';}
+  if(mp){const on=connected;mp.className='pill '+(on?'ok':'warn');mp.title=on?'Mic: Active':'Mic: Inactive';}
+  if(cp){cp.className='pill '+(connected?'ok':connecting?'warn':'');cp.title=connected?'Connected':'Disconnected';}
+}
+
+// ── TOAST ──
+function toast(msg){const el=G('toast');el.textContent=msg;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),2400);}
+
+// ── GHOST ──
+function toggleGhost(){const on=G('ghost').classList.toggle('on');G('ghost-btn').classList.toggle('on',on);toast(on?'👁 Ghost Mode ON':'👁 Ghost Mode OFF');}
+function flashGhost(color){const gf=G('gflash');gf.style.background=color;gf.classList.add('on');setTimeout(()=>gf.classList.remove('on'),280);}
+
+// ── HISTORY ──
+function showHistory(){
+  const sessions=JSON.parse(localStorage.getItem('lp_sessions')||'[]');
+  const hl=G('hist-list');hl.innerHTML='';
+  if(!sessions.length){hl.innerHTML='<div class="no-hist">No sessions yet.</div>';G('hist-panel').classList.add('on');return;}
+  sessions.forEach((s,idx)=>{
+    const sc=document.createElement('div');sc.className='scard'+(s.locked?' locked':'');
+    const ins=s.summary.insight?`<div class="sbullet"><span class="slabel i">INSIGHT</span><span>${s.summary.insight}</span></div>`:'';
+    const fu=s.summary.followup?`<div class="sbullet"><span class="slabel f">NEXT</span><span>${s.summary.followup}</span></div>`:'';
+    const notePreview=s.note?`<div class="note-preview">📝 ${s.note.slice(0,70)}${s.note.length>70?'…':''}</div>`:'';
+    const modeTag=s.mode==='session'?(s.persona||'session'):(s.persona||s.mode||'whisper');
+    const modelTag=s.model?`<span style="color:var(--groq);font-size:0.58rem;"> [${s.model.split('-').slice(0,2).join('-')}]</span>`:'';
+    sc.innerHTML=`
+      <div class="scard-hdr">
+        <div class="sdate">📅 ${s.date} <span style="color:var(--purple);font-size:0.62rem;">[${modeTag}]</span>${modelTag} ${s.locked?'🔒':''}</div>
+        <div class="scard-actions">
+          <button class="sc-btn note-btn" title="Note">📝</button>
+          <button class="sc-btn lock-btn" title="${s.locked?'Unlock':'Lock'}">${s.locked?'🔓':'🔒'}</button>
+          <button class="sc-btn del" title="Delete" ${s.locked?'disabled':''}>🗑</button>
+        </div>
+      </div>
+      <div class="sbullet"><span class="slabel t">TOPIC</span><span>${s.summary.topic}</span></div>
+      <div class="sbullet"><span class="slabel n">TONE</span><span>${s.summary.tone}</span></div>
+      ${ins}
+      <div class="sbullet"><span class="slabel r">REPAIR</span><span>"${s.summary.repair}"</span></div>
+      ${fu}${notePreview}
+      <div class="scard-btns">
+        ${s.transcript?'<button class="view-btn log-btn">📄 Full Log</button>':''}
+        <button class="view-btn sum-btn">📊 Summary</button>
+        <button class="view-btn exp-btn">📤 Export</button>
+      </div>`;
+    sc.querySelector('.note-btn').addEventListener('click',()=>editNote(idx));
+    sc.querySelector('.lock-btn').addEventListener('click',()=>toggleLock(idx));
+    if(!s.locked)sc.querySelector('.del').addEventListener('click',()=>deleteSession(idx));
+    if(s.transcript)sc.querySelector('.log-btn').addEventListener('click',()=>openLog(s));
+    sc.querySelector('.sum-btn').addEventListener('click',()=>openSummary(s));
+    sc.querySelector('.exp-btn').addEventListener('click',()=>exportSingleSession(s));
+    hl.appendChild(sc);
+  });
+  G('hist-panel').classList.add('on');
+}
+function editNote(idx){const sessions=JSON.parse(localStorage.getItem('lp_sessions')||'[]');const note=prompt('Session note:',sessions[idx]?.note||'');if(note===null)return;sessions[idx].note=note.trim();localStorage.setItem('lp_sessions',JSON.stringify(sessions));showHistory();toast('✓ Note saved');}
+function toggleLock(idx){const sessions=JSON.parse(localStorage.getItem('lp_sessions')||'[]');sessions[idx].locked=!sessions[idx].locked;localStorage.setItem('lp_sessions',JSON.stringify(sessions));showHistory();toast(sessions[idx].locked?'🔒 Locked':'🔓 Unlocked');}
+function deleteSession(idx){const sessions=JSON.parse(localStorage.getItem('lp_sessions')||'[]');if(sessions[idx].locked){toast('⚠ Unlock first');return;}if(!confirm('Delete this session?'))return;sessions.splice(idx,1);localStorage.setItem('lp_sessions',JSON.stringify(sessions));showHistory();toast('🗑 Deleted');}
+function openLog(s){G('tx-panel-title').textContent='📄 Session Log';const lines=s.transcript.split('\n').filter(l=>l.trim());G('tx-meta').textContent=`Date: ${s.date}   Lines: ${lines.length}   Model: ${s.model||'—'}`;const body=G('tx-body');body.innerHTML='';body.style.whiteSpace='pre-wrap';lines.forEach(line=>{const d=document.createElement('div');d.className=line.startsWith('AI:')?'tx-ai':line.startsWith('//')?'tx-sys':'';d.textContent=line;body.appendChild(d);});body.scrollTop=0;G('tx-panel').classList.add('on');}
+function openSummary(s){G('tx-panel-title').textContent='📊 Session Summary';G('tx-meta').textContent=`Date: ${s.date}`;const body=G('tx-body');body.innerHTML='';body.style.whiteSpace='normal';const fields=[{label:'TOPIC',val:s.summary.topic,color:'var(--blue)'},{label:'TONE',val:s.summary.tone,color:'var(--yellow)'},{label:'INSIGHT',val:s.summary.insight,color:'var(--purple)'},{label:'REPAIR PHRASE',val:'"'+s.summary.repair+'"',color:'var(--green)'},{label:'NEXT STEP',val:s.summary.followup,color:'var(--orange)'},{label:'NOTE',val:s.note||'(none)',color:'var(--dim)'}];fields.forEach(f=>{if(!f.val||f.val==='undefined'||f.val==='(none)'&&!s.note)return;const d=document.createElement('div');d.className='summary-field';d.innerHTML=`<div class="summary-field-label" style="color:${f.color}">${f.label}</div><div class="summary-field-val">${f.val}</div>`;body.appendChild(d);});G('tx-panel').classList.add('on');}
+function exportSingleSession(s){const text=`LISTENER PRO v3.0 GROQ — SESSION EXPORT\n${'-'.repeat(44)}\nDate: ${s.date}\nMode: ${s.mode} / ${s.persona}\nModel: ${s.model||'—'}\n\nSUMMARY\nTopic: ${s.summary.topic}\nTone: ${s.summary.tone}\nInsight: ${s.summary.insight}\nRepair: ${s.summary.repair}\nNext: ${s.summary.followup}\nNote: ${s.note||'—'}\n\nTRANSCRIPT\n${s.transcript}`;const blob=new Blob([text],{type:'text/plain'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`listener-session-${s.date.replace(/[/:, ]/g,'-')}.txt`;a.click();toast('📤 Session exported');}
+
+// ── TEMPLATES ──
+function loadTemplateSelect(){const templates=JSON.parse(localStorage.getItem('lp_templates')||'[]');const sel=G('tmpl-select');sel.innerHTML='<option value="">— No template —</option>';templates.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=t.name;sel.appendChild(o);});}
+function openTemplateEditor(id){editingTmplId=id;G('tmpl-panel-title').textContent=id?'✏️ Edit Template':'＋ New Template';if(id){const templates=JSON.parse(localStorage.getItem('lp_templates')||'[]');const t=templates.find(x=>x.id===id);if(t){G('tmpl-name').value=t.name;G('tmpl-url').value=t.url||'';G('tmpl-product').value=t.product;G('tmpl-points').value=t.points;G('tmpl-objections').value=t.objections;G('tmpl-prospect').value=t.prospect;}G('tmpl-delete-btn').style.display='block';}else{G('tmpl-name').value='';G('tmpl-url').value='';G('tmpl-product').value='';G('tmpl-points').value='';G('tmpl-objections').value='';G('tmpl-prospect').value='';G('tmpl-delete-btn').style.display='none';}G('tmpl-panel').classList.add('on');}
+function saveTemplate(){const name=G('tmpl-name').value.trim();if(!name){toast('⚠ Enter a template name');return;}const templates=JSON.parse(localStorage.getItem('lp_templates')||'[]');const tmpl={id:editingTmplId||String(Date.now()),name,url:G('tmpl-url').value.trim(),product:G('tmpl-product').value.trim(),points:G('tmpl-points').value.trim(),objections:G('tmpl-objections').value.trim(),prospect:G('tmpl-prospect').value.trim(),companyContext:scrapeContext?JSON.stringify(scrapeContext):null};scrapeContext=null;const idx=templates.findIndex(t=>t.id===tmpl.id);if(idx>=0)templates[idx]=tmpl;else templates.push(tmpl);localStorage.setItem('lp_templates',JSON.stringify(templates));loadTemplateSelect();G('tmpl-panel').classList.remove('on');toast('✓ Template saved');}
+function deleteTemplate(){if(!editingTmplId)return;if(!confirm('Delete this template?'))return;const templates=JSON.parse(localStorage.getItem('lp_templates')||'[]').filter(t=>t.id!==editingTmplId);localStorage.setItem('lp_templates',JSON.stringify(templates));loadTemplateSelect();G('tmpl-panel').classList.remove('on');toast('🗑 Template deleted');}
+
+// ── COMPANY SCRAPER (now uses Groq) ──
+async function scrapeCompanyURL(){
+  const url=G('tmpl-url').value.trim();
+  if(!url){toast('⚠ Paste a URL first');return;}
+  if(!url.startsWith('http')){toast('⚠ URL must start with https://');return;}
+  const btn=G('tmpl-scrape-btn'),status=G('scrape-status');
+  btn.textContent='⏳ Fetching...';btn.disabled=true;status.style.display='block';status.textContent='// Fetching page...';
+  try{
+    const proxyUrl=`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const res=await fetch(proxyUrl);const data=await res.json();const html=data.contents||'';
+    if(!html){status.textContent='// ✗ Could not fetch page';btn.textContent='🔍 Auto-fill';btn.disabled=false;return;}
+    const text=html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'').replace(/<script[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,4000);
+    status.textContent='// Page fetched — asking Groq to extract details...';
+    const prompt=`You are analyzing a company website. Extract key information and respond ONLY with a raw JSON object — no markdown, no backticks.\n\n{"company_name":"name of the company","product_description":"1-2 sentence description of what they sell","value_props":"3-5 bullet points of key selling points, each on a new line starting with •","common_objections":"3 realistic sales objections a prospect might raise, each on a new line starting with •","prospect_description":"describe the ideal buyer/prospect for this product in one sentence"}\n\nWebsite text:\n${text}`;
+    const apiRes=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json'},body:JSON.stringify({model:selectedModel,messages:[{role:'user',content:prompt}],max_tokens:600,temperature:0.2})});
+    const apiData=await apiRes.json();const raw=(apiData.choices?.[0]?.message?.content||'');
+    let parsed=null;try{parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){const m=raw.match(/\{[\s\S]*\}/);if(m)try{parsed=JSON.parse(m[0]);}catch(e2){}}
+    if(!parsed){status.textContent='// ✗ Could not parse — fill fields manually';btn.textContent='🔍 Auto-fill';btn.disabled=false;return;}
+    if(!G('tmpl-name').value&&parsed.company_name)G('tmpl-name').value=parsed.company_name+' Pitch';
+    if(parsed.product_description)G('tmpl-product').value=parsed.product_description;
+    if(parsed.value_props)G('tmpl-points').value=parsed.value_props;
+    if(parsed.common_objections)G('tmpl-objections').value=parsed.common_objections;
+    if(parsed.prospect_description)G('tmpl-prospect').value=parsed.prospect_description;
+    scrapeContext=parsed;
+    status.textContent='// ✓ Fields auto-filled — review and edit before saving';
+    status.style.color='var(--green)';toast('✓ Company details extracted');
+  }catch(e){status.textContent='// ✗ Error: '+e.message;toast('⚠ Scrape failed');}
+  btn.textContent='🔍 Auto-fill';btn.disabled=false;
+}
+
+// ── IMPORT / EXPORT ──
+function doExport(){const data={version:APP_VERSION,exported:new Date().toISOString()};if(G('exp-sessions').checked)data.sessions=JSON.parse(localStorage.getItem('lp_sessions')||'[]');if(G('exp-templates').checked)data.templates=JSON.parse(localStorage.getItem('lp_templates')||'[]');if(G('exp-settings').checked)data.settings={apiKey,model:selectedModel,stt:selectedSTT,vadSilenceMs};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`listener-pro-export-${new Date().toISOString().slice(0,10)}.json`;a.click();toast('📤 Exported successfully');}
+function doImport(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{try{const data=JSON.parse(ev.target.result);if(G('imp-sessions').checked&&data.sessions){const existing=JSON.parse(localStorage.getItem('lp_sessions')||'[]');const merged=[...data.sessions,...existing.filter(s=>!data.sessions.find(ns=>ns.id===s.id))];localStorage.setItem('lp_sessions',JSON.stringify(merged));}if(G('imp-templates').checked&&data.templates){const existing=JSON.parse(localStorage.getItem('lp_templates')||'[]');const merged=[...data.templates,...existing.filter(t=>!data.templates.find(nt=>nt.id===t.id))];localStorage.setItem('lp_templates',JSON.stringify(merged));loadTemplateSelect();}if(G('imp-settings').checked&&data.settings){if(data.settings.apiKey){apiKey=data.settings.apiKey;localStorage.setItem('lp_key',apiKey);updatePills();}if(data.settings.model)setModelSilent(data.settings.model);}toast('✓ Import complete');}catch(err){toast('⚠ Import failed — invalid file');}};reader.readAsText(file);e.target.value='';}
+
+if('serviceWorker'in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{}));}
+
+init();
+</script>
+</body>
+</html>
